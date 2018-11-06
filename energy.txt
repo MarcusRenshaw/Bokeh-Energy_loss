@@ -1,0 +1,85 @@
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
+from bokeh.io import output_notebook
+from bokeh.io import show
+from bokeh.plotting import figure
+from ipywidgets import interact
+from bokeh.io import push_notebook
+from bokeh.models import Select
+from bokeh.layouts import widgetbox
+from bokeh.plotting import curdoc
+
+data = pd.read_csv('energy_foo_new.csv')
+
+output_notebook()
+
+PLOT_OPTS = dict(
+    x_axis_type='log', y_axis_type='linear', y_range=(0,1.05), x_range=(5*10**0,1*10**3),
+    x_axis_label = "Electric Field (E/N)",
+    y_axis_label = "Fractional Energy Loss", title = "Fractional energy loss against reduced electric field"  
+)
+
+from bokeh.models import ColumnDataSource
+source = ColumnDataSource(dict(
+    x = data.iloc[:,0],
+    y = data.iloc[:,0],
+    z = data.iloc[:,0],
+    a = data.iloc[:,0],
+    b = data.iloc[:,0],
+    c = data.iloc[:,0]
+    ))
+from bokeh.models import NumeralTickFormatter
+from bokeh.models import HoverTool
+hover = HoverTool(tooltips='@x')
+p = figure(tools=[hover],**PLOT_OPTS)
+#p.circle(x= data.iloc[:,0], y=data.iloc[:,1],color="red", )
+
+p.circle(x='x',y='y',source=source, color="red", legend = "H2O Excitation 0.0046 eV")
+p.circle(x='x',y='z',source=source, color="green", legend = "H2O Excitation 0.45 eV")
+p.circle(x='x',y='a',source=source, color="orange", legend = "H2O Ionization 13.50 eV")
+p.circle(x='x',y='b',source=source, color="pink", legend = "He Elastic")
+p.circle(x='x',y='c',source=source, color="blue", legend = "He Ionization 24.59 eV")
+
+show(p, notebook_handle=True)
+p.xaxis.formatter = NumeralTickFormatter(format = "1")
+p.yaxis.major_label_text_font_size="10pt"
+p.legend.label_text_font_size="14pt"
+p.xaxis.major_label_text_font_size="10pt"
+p.yaxis.axis_label_text_font_size="13pt"
+p.xaxis.axis_label_text_font_size="10pt"
+
+
+def update(humidity,oxygen, nitrogen):
+
+
+    g = 10*humidity*67+4
+    h = 10*humidity*67+8
+    i = 10*humidity*67+11
+    j = 10*humidity*67+17
+    k = 10*humidity*67+67
+    
+    g=int(g)
+    h=int(h)
+    i=int(i)
+    j=int(j)
+    k=int(k)
+
+    
+    
+    new_data = dict(
+        x = data.iloc[:,0],
+        y = data.iloc[:,g],
+        z = data.iloc[:,h],
+        a = data.iloc[:,i],
+        b = data.iloc[:,j],
+        c = data.iloc[:,k]
+    )
+    
+
+    source.data = new_data
+    push_notebook()
+
+interact(update,
+         humidity=(0., 10.,0.1), oxygen=(0.,10.,0.1),nitrogen=(0.,10.,0.1))
